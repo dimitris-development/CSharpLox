@@ -1,0 +1,13 @@
+class Test 
+{
+	fun Init()
+	{
+		// Prints hello world
+		/* Block comment */
+		/* Block comment
+		* this is a long block comment
+		* very long in fact 
+		*/
+		print "Hello world!"
+	}
+}
