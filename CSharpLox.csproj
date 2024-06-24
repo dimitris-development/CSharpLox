@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="MetaExprGenerator\**" />
-    <EmbeddedResource Remove="MetaExprGenerator\**" />
-    <None Remove="MetaExprGenerator\**" />
+    <Compile Remove="ASTGenerator\**" />
+    <EmbeddedResource Remove="ASTGenerator\**" />
+    <None Remove="ASTGenerator\**" />
   </ItemGroup>
 
 </Project>

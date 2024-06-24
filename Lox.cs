@@ -1,6 +1,6 @@
 ﻿namespace CSharpLox
 {
-    public static class Lox
+    internal static class Lox
     {
         static bool hadError = false;
 
