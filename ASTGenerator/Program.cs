@@ -17,30 +17,50 @@
         static void DefineAst(string outputDir, string baseName, List<string> types)
         {
             string currentDirectory = Environment.CurrentDirectory;
-            string targetDirectory = Path.Combine([currentDirectory, "..\\..\\..\\", outputDir]);
+            string targetDirectory = Path.Combine([currentDirectory, "..\\..\\..\\..\\", outputDir]);
             string fullPath = Path.Combine(targetDirectory, $"{baseName}.cs");
 
             Directory.CreateDirectory(targetDirectory);
 
             using (StreamWriter sw = File.CreateText(fullPath))
             {
-                sw.WriteLine("namespace CSharpLox;");
-                sw.WriteLine($"public abstract class {baseName} {{");
+                sw.WriteLine("namespace CSharpLox.AST;");
+                sw.WriteLine($"public abstract class {baseName}");
+                sw.WriteLine("{");
+
+                DefineVisitor(sw, baseName, types);
 
                 foreach (string type in types)
                 {
                     string className = type.Split(":")[0].Trim();
                     string fields = type.Split(":")[1].Trim();
-                    DefineType(sw, className, fields);
+                    DefineType(sw, baseName, className, fields);
                 }
 
-                sw.WriteLine($"}}");
+                sw.WriteLine("\tpublic abstract T Accept<T>(IVisitor<T> visitor);");
+                sw.WriteLine("}");
             }
         }
 
-        static void DefineType(StreamWriter sw, string className, string fields)
+        static void DefineVisitor(StreamWriter sw, string baseName, List<string> types)
         {
-            sw.WriteLine($"\tpublic class {className} ({fields}) {{");
+            sw.WriteLine($"\tpublic interface IVisitor<T>");
+            sw.WriteLine("\t{");
+
+            foreach (string type in types)
+            {
+                string className = type.Split(":")[0].Trim();
+
+                sw.WriteLine($"\t\tpublic T Visit({className} _{className.ToLower()});");
+            }
+
+            sw.WriteLine("\t}");
+        }
+
+        static void DefineType(StreamWriter sw, string baseName, string className, string fields)
+        {
+            sw.WriteLine($"\tpublic class {className} ({fields}) : {baseName}");
+            sw.WriteLine("\t{");
 
             string[] fieldList = fields.Split(", ");
 
@@ -52,7 +72,12 @@
                 sw.WriteLine($"\t\treadonly {type} _{name} = {name};");
             }
 
-            sw.WriteLine($"\t}}");
+            sw.WriteLine();
+            sw.WriteLine("\t\tpublic override T Accept<T>(IVisitor<T> visitor)");
+            sw.WriteLine("\t\t{");
+            sw.WriteLine($"\t\t\treturn visitor.Visit(this);");
+            sw.WriteLine("\t\t}");
+            sw.WriteLine("\t}");
         }
     }
 }
