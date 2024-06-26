@@ -1,4 +1,6 @@
-﻿namespace CSharpLox
+﻿using CSharpLox.AST;
+
+namespace CSharpLox
 {
     internal static class Lox
     {
@@ -56,11 +58,11 @@
         {
             Scanner scanner = new Scanner(source);
             IList<Token> tokens = scanner.ScanTokens();
+            Parser parser = new Parser(tokens);
 
-            foreach (Token token in tokens)
-            {
-                Console.WriteLine(token.ToString());
-            }
+            if (hadError) return;
+
+            Expr? expression = parser.Parse();
         }
 
         public static void Error(int line, string message)
@@ -68,9 +70,21 @@
             Report(line, "", message);
         }
 
+        public static void Error(Token token, string message)
+        {
+            if (token.type == TokenType.EOF)
+            {
+                Report(token.line, "at end", message);
+            }
+            else
+            {
+                Report(token.line, $"at '{token.lexeme}'", message);
+            }
+        }
+
         static void Report(int line, string where, string message)
         {
-            Console.Error.WriteLine("[line " + line + "] Error" + where + ": " + message);
+            Console.Error.WriteLine($"[line {line}] Error {where} : {message}");
             hadError = true;
         }
     }

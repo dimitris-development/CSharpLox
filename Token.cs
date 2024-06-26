@@ -7,14 +7,14 @@
         int line
     )
     {
-        readonly TokenType _type = type;
-        readonly string _lexeme = lexeme;
-        readonly object? _literal = literal;
-        readonly int _line = line;
+        public readonly TokenType type = type;
+        public readonly string lexeme = lexeme;
+        public readonly object? literal = literal;
+        public readonly int line = line;
 
         override public string ToString()
         {
-            return _type + " " + _lexeme + " " + _literal;
+            return type + " " + lexeme + " " + literal;
         }
     }
 }
