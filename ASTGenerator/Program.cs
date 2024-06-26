@@ -69,7 +69,7 @@
                 string type = field.Split(" ")[0];
                 string name = field.Split(" ")[1];
                 
-                sw.WriteLine($"\t\treadonly {type} _{name} = {name};");
+                sw.WriteLine($"\t\tpublic readonly {type} {name} = {name};");
             }
 
             sw.WriteLine();

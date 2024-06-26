@@ -1,4 +1,4 @@
-﻿namespace CSharpLox
+﻿namespace AST
 {
     public class Token(
         TokenType type,

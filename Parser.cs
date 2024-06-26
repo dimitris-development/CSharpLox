@@ -1,4 +1,4 @@
-﻿using CSharpLox.AST;
+﻿using AST;
 
 namespace CSharpLox
 {

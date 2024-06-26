@@ -1,4 +1,6 @@
-﻿namespace CSharpLox
+﻿using AST;
+
+namespace CSharpLox
 {
     public class Scanner(string source)
     {

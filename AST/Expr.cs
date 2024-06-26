@@ -1,18 +1,18 @@
-namespace CSharpLox.AST;
+namespace AST;
 public abstract class Expr
 {
 	public interface IVisitor<T>
 	{
-		public T Visit(Binary _binary);
-		public T Visit(Grouping _grouping);
-		public T Visit(Literal _literal);
-		public T Visit(Unary _unary);
+		public T Visit(Binary binary);
+		public T Visit(Grouping grouping);
+		public T Visit(Literal literal);
+		public T Visit(Unary unary);
 	}
 	public class Binary (Expr left, Token oper, Expr right) : Expr
 	{
-		readonly Expr _left = left;
-		readonly Token _oper = oper;
-		readonly Expr _right = right;
+		public readonly Expr left = left;
+		public readonly Token oper = oper;
+		public readonly Expr right = right;
 
 		public override T Accept<T>(IVisitor<T> visitor)
 		{
@@ -21,7 +21,7 @@ public abstract class Expr
 	}
 	public class Grouping (Expr expression) : Expr
 	{
-		readonly Expr _expression = expression;
+        public readonly Expr expression = expression;
 
 		public override T Accept<T>(IVisitor<T> visitor)
 		{
@@ -30,7 +30,7 @@ public abstract class Expr
 	}
 	public class Literal (object? value) : Expr
 	{
-		readonly object? _value = value;
+        public readonly object? value = value;
 
 		public override T Accept<T>(IVisitor<T> visitor)
 		{
@@ -39,8 +39,8 @@ public abstract class Expr
 	}
 	public class Unary (Token oper, Expr right) : Expr
 	{
-		readonly Token _oper = oper;
-		readonly Expr _right = right;
+        public readonly Token oper = oper;
+        public readonly Expr right = right;
 
 		public override T Accept<T>(IVisitor<T> visitor)
 		{

@@ -5,12 +5,23 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AssemblyName>$(MSBuildProjectName)</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="ASTGenerator\**" />
+    <Compile Remove="AST\**" />
+    <Compile Remove="ASTVisualizer\**" />
     <EmbeddedResource Remove="ASTGenerator\**" />
+    <EmbeddedResource Remove="AST\**" />
+    <EmbeddedResource Remove="ASTVisualizer\**" />
     <None Remove="ASTGenerator\**" />
+    <None Remove="AST\**" />
+    <None Remove="ASTVisualizer\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="AST\AST.csproj" />
   </ItemGroup>
 
 </Project>

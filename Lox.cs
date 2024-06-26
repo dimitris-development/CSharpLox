@@ -1,8 +1,8 @@
-﻿using CSharpLox.AST;
+﻿using AST;
 
 namespace CSharpLox
 {
-    internal static class Lox
+    static class Lox
     {
         static bool hadError = false;
 
