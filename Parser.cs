@@ -3,7 +3,8 @@
 namespace CSharpLox
 {
     // Parsing rules:
-    // expression     → equality
+    // 
+    // expression     → equality (, equality)*
     // equality       → comparison (( "!=" | "==" ) comparison )*
     // comparison     → term(( ">" | ">=" | "<" | "<=" ) term )*
     // term           → factor(( "-" | "+" ) factor )*
@@ -33,7 +34,17 @@ namespace CSharpLox
 
         private Expr Expression()
         {
-            return Equality();
+            Expr expr = Equality();
+
+            while(Match(TokenType.COMMA))
+            {
+                Token oper = Previous();
+                Expr right = Equality();
+
+                expr = new Expr.Binary(expr, oper, right);
+            }
+
+            return expr;
         }
 
         private Expr Equality()
