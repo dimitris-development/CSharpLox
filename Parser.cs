@@ -4,7 +4,8 @@ namespace CSharpLox
 {
     // Parsing rules:
     // 
-    // expression     → equality (, equality)*
+    // expression     → conditional (, conditional)*
+    // conditional    → equality | ((equality ? term : conditional)
     // equality       → comparison (( "!=" | "==" ) comparison )*
     // comparison     → term(( ">" | ">=" | "<" | "<=" ) term )*
     // term           → factor(( "-" | "+" ) factor )*
@@ -34,17 +35,36 @@ namespace CSharpLox
 
         private Expr Expression()
         {
-            Expr expr = Equality();
+            Expr expr = Conditional();
 
             while(Match(TokenType.COMMA))
             {
                 Token oper = Previous();
-                Expr right = Equality();
+                Expr right = Conditional();
 
                 expr = new Expr.Binary(expr, oper, right);
             }
 
             return expr;
+        }
+
+        private Expr Conditional()
+        {
+            Expr expr = Equality();
+
+            if (!Match(TokenType.QUESTION_MARK)) return expr;
+
+            Token questionMark = Previous();
+            Expr right = Term();
+
+            Consume(TokenType.COLON, "Expected ':' after term");
+
+            Token colon = Previous();
+            Expr conditional = Conditional();
+
+            Expr conditionalSubtree = new Expr.Binary(right, colon, conditional);
+            
+            return new Expr.Binary(expr, questionMark, conditionalSubtree);
         }
 
         private Expr Equality()

@@ -14,7 +14,7 @@
 
         override public string ToString()
         {
-            return type + " " + lexeme + " " + literal;
+            return lexeme;
         }
     }
 }

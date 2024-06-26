@@ -58,6 +58,8 @@ namespace CSharpLox
                 case '+': AddToken(TokenType.PLUS); break;
                 case ';': AddToken(TokenType.SEMICOLON); break;
                 case '*': AddToken(TokenType.STAR); break;
+                case '?': AddToken(TokenType.QUESTION_MARK); break;
+                case ':': AddToken(TokenType.COLON); break;
                 case '!':
                     AddToken(Match('=') ? TokenType.BANG_EQUAL : TokenType.BANG);
                     break;
