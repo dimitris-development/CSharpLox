@@ -1,6 +1,5 @@
 using Microsoft.Msagl.GraphViewerGdi;
 using Microsoft.Msagl.Drawing;
-using Color = Microsoft.Msagl.Drawing.Color;
 using AST;
 using CSharpLox;
 
@@ -21,11 +20,8 @@ internal static class Program
         ASTGraph ast = new (graph);
 
         string stream = File.ReadAllText("../../../../test.lox");
-        Scanner scanner = new Scanner(stream);
-        IList<Token> tokens = scanner.ScanTokens();
-        Parser parser = new Parser(tokens);
-
-        Expr? expression = parser.Parse();
+        
+        Expr? expression = Lox.Parse(stream, "../../../../test.lox.log");
 
         ast.Visualize(expression);
 

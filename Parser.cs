@@ -5,7 +5,9 @@ namespace CSharpLox
     // Parsing rules:
     // 
     // expression     → conditional (, conditional)*
-    // conditional    → equality | ((equality ? term : conditional)
+    // 
+    // Conditional resolves to term so equality ? term : term == equality ? term : conditional
+    // conditional    → equality | (equality ? term : conditional)
     // equality       → comparison (( "!=" | "==" ) comparison )*
     // comparison     → term(( ">" | ">=" | "<" | "<=" ) term )*
     // term           → factor(( "-" | "+" ) factor )*
@@ -16,7 +18,15 @@ namespace CSharpLox
 
     public class Parser(IList<Token> tokens)
     {
-        private class ParseError : Exception;
+        private class UnhandledParseError : Exception;
+
+        private class HandledParseError(Token token, string message)
+        {
+            public string message = message;
+            public Token token = token;
+        }
+
+        private IList<HandledParseError> _errors = new List<HandledParseError>();
 
         private readonly IList<Token> _tokens = tokens;
         private int _current = 0;
@@ -25,9 +35,16 @@ namespace CSharpLox
         {
             try
             {
-                return Expression();
+                Expr expr = Expression();
+
+                foreach (var error in _errors)
+                {
+                    Lox.Error(error.token, error.message);
+                }
+
+                return expr;
             }
-            catch (ParseError error)
+            catch (UnhandledParseError error)
             {
                 return null;
             }
@@ -39,8 +56,12 @@ namespace CSharpLox
 
             while(Match(TokenType.COMMA))
             {
+                expr = CheckForExpression(expr, "Binary operator ',' must have both left and right operands");
+
                 Token oper = Previous();
                 Expr right = Conditional();
+
+                right = CheckForExpression(right, "Binary operator ',' must have both left and right operands");
 
                 expr = new Expr.Binary(expr, oper, right);
             }
@@ -62,8 +83,13 @@ namespace CSharpLox
             Token colon = Previous();
             Expr conditional = Conditional();
 
+            right = CheckForExpression(right, "Binary operator ':' must have both left and right operands");
+            conditional = CheckForExpression(conditional, "Binary operator ':' must have both left and right operands");
+
             Expr conditionalSubtree = new Expr.Binary(right, colon, conditional);
-            
+
+            expr = CheckForExpression(expr, "Binary operator '?' must have both left and right operands");
+            conditionalSubtree = CheckForExpression(conditionalSubtree, "Binary operator '?' must have both left and right operands");
             return new Expr.Binary(expr, questionMark, conditionalSubtree);
         }
 
@@ -73,8 +99,13 @@ namespace CSharpLox
 
             while (Match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL))
             {
+                expr = CheckForExpression(expr, "Binary operators (!=, ==) must have both left and right operands");
+
                 Token oper = Previous();
                 Expr right = Comparison();
+
+                right = CheckForExpression(right, "Binary operators (!=, ==) must have both left and right operands");
+
                 expr = new Expr.Binary(expr, oper, right);
             }
 
@@ -87,8 +118,13 @@ namespace CSharpLox
 
             while (Match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL))
             {
+                expr = CheckForExpression(expr, "Binary operators (<, <=, >, >=) must have both left and right operands");
+
                 Token oper = Previous();
                 Expr right = Term();
+
+                right = CheckForExpression(right, "Binary operators (<, <=, >, >=) must have both left and right operands");
+
                 expr = new Expr.Binary(expr, oper, right);
             }
 
@@ -101,8 +137,13 @@ namespace CSharpLox
 
             while (Match(TokenType.MINUS, TokenType.PLUS))
             {
+                expr = CheckForExpression(expr, "Binary operators (-, +) must have both left and right operands");
+
                 Token oper = Previous();
                 Expr right = Factor();
+
+                right = CheckForExpression(right, "Binary operators (-, +) must have both left and right operands");
+
                 expr = new Expr.Binary(expr, oper, right);
             }
 
@@ -115,8 +156,13 @@ namespace CSharpLox
 
             while (Match(TokenType.SLASH, TokenType.STAR))
             {
+                expr = CheckForExpression(expr, "Binary operators (/, *) must have both left and right operands");
+
                 Token oper = Previous();
                 Expr right = Unary();
+
+                right = CheckForExpression(right, "Binary operators (/, *) must have both left and right operands");
+
                 expr = new Expr.Binary(expr, oper, right);
             }
 
@@ -150,12 +196,25 @@ namespace CSharpLox
             if (Match(TokenType.LEFT_PAREN))
             {
                 Expr expr = Expression();
+                expr = CheckForExpression(expr, "Expected expression not '('");
+
                 Consume(TokenType.RIGHT_PAREN, "Expected ')' after expression");
 
                 return new Expr.Grouping(expr);
             }
 
-            throw Error(Peek(), "Expected expression");
+            return new Expr.Nothing("Nothing");
+        }
+
+        private Expr CheckForExpression(Expr expr, string errorMessage)
+        {
+            if (expr is Expr.Nothing)
+            {
+                HandledParseError error = new (Previous(), errorMessage);
+                _errors.Add(error);
+            }
+
+            return expr;
         }
 
         private bool Match(params TokenType[] tokens)
@@ -205,10 +264,10 @@ namespace CSharpLox
             throw Error(Peek(), errorMessage);
         }
 
-        private ParseError Error(Token token, string message)
+        private static UnhandledParseError Error(Token token, string message)
         {
             Lox.Error(token, message);
-            return new ParseError();
+            return new UnhandledParseError();
         }
     }
 }

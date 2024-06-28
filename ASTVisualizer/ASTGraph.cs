@@ -20,12 +20,18 @@ public class ASTGraph (Graph graph) : IVisitor<string>
 
     public string Visit(Literal literal)
     {
-        return CreateNode(literal);
+        string label = Convert.ToString(literal.value) ?? "nil";
+        return CreateNode(label);
     }
 
     public string Visit(Unary unary)
     {
         return CreateNode($"Unary {unary.oper}", unary.right);
+    }
+
+    public string Visit(Nothing nothing)
+    {
+        return CreateNode("Nothing");
     }
 
     public string Visualize(Expr expr)
@@ -47,13 +53,12 @@ public class ASTGraph (Graph graph) : IVisitor<string>
         return nodeId;
     }
 
-    private string CreateNode(Literal literal)
+    private string CreateNode(string name)
     {
         string nodeId = Guid.NewGuid().ToString();
         Node node = _graph.AddNode(nodeId);
-        string label = Convert.ToString(literal.value) ?? "nil";
 
-        node.LabelText = label;
+        node.LabelText = name;
 
         return nodeId;
     }

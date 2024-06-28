@@ -9,8 +9,9 @@
             DefineAst(outputDir, "Expr", [
               "Binary   : Expr left, Token oper, Expr right",
               "Grouping : Expr expression",
-              "Literal  : object value",
-              "Unary    : Token oper, Expr right"
+              "Literal  : object? value",
+              "Unary    : Token oper, Expr right",
+              "Nothing  : string nothing"
             ]);
         }
 
@@ -24,7 +25,7 @@
 
             using (StreamWriter sw = File.CreateText(fullPath))
             {
-                sw.WriteLine("namespace CSharpLox.AST;");
+                sw.WriteLine("namespace AST;");
                 sw.WriteLine($"public abstract class {baseName}");
                 sw.WriteLine("{");
 

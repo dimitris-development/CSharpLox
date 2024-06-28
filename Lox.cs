@@ -2,9 +2,13 @@
 
 namespace CSharpLox
 {
-    static class Lox
+    public static class Lox
     {
         static bool hadError = false;
+
+        const string TEST_FILE_PATH = "../../../test.lox";
+
+        static StreamWriter? _streamWriter;
 
         static int Main(string[] args)
         {
@@ -47,7 +51,7 @@ namespace CSharpLox
                 Console.Write("> ");
                 string? line = Console.ReadLine();
                 if (line == null) break;
-                if (line == "test") RunFile("../../../test.lox");
+                if (line == "test") RunFile(TEST_FILE_PATH);
 
                 Run(line);
                 hadError = false;
@@ -56,13 +60,27 @@ namespace CSharpLox
 
         static void Run(string source)
         {
+            Parse(source);
+        }
+
+        public static Expr? Parse(string source, string errorFilePath = "")
+        {
+            if (errorFilePath != "")
+            {
+                _streamWriter = new StreamWriter(errorFilePath);
+            }
+
             Scanner scanner = new Scanner(source);
             IList<Token> tokens = scanner.ScanTokens();
+
+            if (hadError) return null;
+
             Parser parser = new Parser(tokens);
+            var result = parser.Parse();
 
-            if (hadError) return;
+            if (_streamWriter != null) _streamWriter.Close();
 
-            Expr? expression = parser.Parse();
+            return result;
         }
 
         public static void Error(int line, string message)
@@ -84,7 +102,15 @@ namespace CSharpLox
 
         static void Report(int line, string where, string message)
         {
-            Console.Error.WriteLine($"[line {line}] Error {where} : {message}");
+            string errorMessage = $"[line {line}] Error {where} : {message}";
+
+            if (_streamWriter != null)
+            {
+                _streamWriter.WriteLine(errorMessage);
+                return;
+            }
+
+            Console.Error.WriteLine(errorMessage);
             hadError = true;
         }
     }
