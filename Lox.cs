@@ -122,7 +122,7 @@ namespace CSharpLox
 
         public static void RuntimeError(RuntimeError error)
         {
-            Console.Error.WriteLine($"{error.message}\n[line {error.token.line}]");
+            Console.Error.WriteLine($"Runtime Error: {error.message} at '{error.token.lexeme}' \n[line {error.token.line}]");
             hadRuntimeError = true;
         }
     }

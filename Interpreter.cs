@@ -57,6 +57,9 @@ namespace CSharpLox
                     return (double)left * (double)right;
                 case TokenType.SLASH:
                     CheckNumberOperands(binary.oper, left, right);
+
+                    if ((double) right == 0) throw new RuntimeError(binary.oper, "Division by 0");
+
                     return (double)left / (double)right;
                 case TokenType.QUESTION_MARK:
                     return Terminal(binary);
@@ -66,7 +69,7 @@ namespace CSharpLox
                     return IsEqual(binary.left, binary.right);
             }
 
-            return null;
+            throw new RuntimeError(binary.oper, "Unexpected binary operation");
         }
 
         public object Visit(Grouping grouping)
@@ -92,7 +95,7 @@ namespace CSharpLox
                     return !IsTruthy(right);
             }
 
-            return null;
+            throw new RuntimeError(unary.oper, "Unexpected unary operation");
         }
 
         public object Visit(Nothing nothing)
