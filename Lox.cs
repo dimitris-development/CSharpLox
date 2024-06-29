@@ -1,14 +1,17 @@
 ﻿using AST;
+using static CSharpLox.Interpreter;
 
 namespace CSharpLox
 {
     public static class Lox
     {
         static bool hadError = false;
+        static bool hadRuntimeError = false;
 
         const string TEST_FILE_PATH = "../../../test.lox";
 
         static StreamWriter? _streamWriter;
+        readonly static Interpreter _interpreter = new Interpreter();
 
         static int Main(string[] args)
         {
@@ -42,6 +45,7 @@ namespace CSharpLox
 
             Run(stream);
             if (hadError) Environment.Exit(65);
+            if (hadRuntimeError) Environment.Exit(70);
         }
 
         static void RunPrompt()
@@ -52,15 +56,17 @@ namespace CSharpLox
                 string? line = Console.ReadLine();
                 if (line == null) break;
                 if (line == "test") RunFile(TEST_FILE_PATH);
-
-                Run(line);
+                else Run(line);
                 hadError = false;
             }
         }
 
         static void Run(string source)
         {
-            Parse(source);
+            Expr? expression = Parse(source);
+            if (hadError) return;
+
+            _interpreter.Interpret(expression);
         }
 
         public static Expr? Parse(string source, string errorFilePath = "")
@@ -112,6 +118,12 @@ namespace CSharpLox
 
             Console.Error.WriteLine(errorMessage);
             hadError = true;
+        }
+
+        public static void RuntimeError(RuntimeError error)
+        {
+            Console.Error.WriteLine($"{error.message}\n[line {error.token.line}]");
+            hadRuntimeError = true;
         }
     }
 }

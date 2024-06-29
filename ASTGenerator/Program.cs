@@ -52,7 +52,7 @@
             {
                 string className = type.Split(":")[0].Trim();
 
-                sw.WriteLine($"\t\tpublic T Visit({className} _{className.ToLower()});");
+                sw.WriteLine($"\t\tpublic T Visit({className} {className.ToLower()});");
             }
 
             sw.WriteLine("\t}");

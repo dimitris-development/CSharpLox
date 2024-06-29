@@ -29,9 +29,9 @@ public abstract class Expr
 			return visitor.Visit(this);
 		}
 	}
-	public class Literal (object? value) : Expr
+	public class Literal (object value) : Expr
 	{
-		public readonly object? value = value;
+		public readonly object value = value;
 
 		public override T Accept<T>(IVisitor<T> visitor)
 		{

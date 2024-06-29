@@ -9,7 +9,6 @@ namespace CSharpLox
         int _start = 0;
         int _current = 0;
         int _line = 1;
-        char _d_curr_char => _source[_current];
 
         Dictionary<string, TokenType> _keywords = new Dictionary<string, TokenType>()
         {
