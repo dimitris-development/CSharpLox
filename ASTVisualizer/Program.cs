@@ -21,9 +21,12 @@ internal static class Program
 
         string stream = File.ReadAllText("../../../../test.lox");
         
-        Expr? expression = Lox.Parse(stream, "../../../../test.lox.log");
+        List<Stmt> statements = Lox.Parse(stream, "../../../../test.lox.log");
 
-        ast.Visualize(expression);
+        foreach (Stmt stmt in statements)
+        {
+            ast.Visualize(stmt);
+        }
 
         viewer.Graph = graph;
         form.SuspendLayout();

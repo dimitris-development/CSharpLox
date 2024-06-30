@@ -3,11 +3,19 @@ public abstract class Expr
 {
 	public interface IVisitor<T>
 	{
-		public T Visit(Binary _binary);
-		public T Visit(Grouping _grouping);
-		public T Visit(Literal _literal);
-		public T Visit(Unary _unary);
-		public T Visit(Nothing _nothing);
+		public T Visit(Binary binary);
+		public T Visit(Grouping grouping);
+		public T Visit(Literal literal);
+		public T Visit(Unary unary);
+		public T Visit(Nothing nothing);
+	}
+	public interface IVisitor
+	{
+		public void Visit(Binary binary);
+		public void Visit(Grouping grouping);
+		public void Visit(Literal literal);
+		public void Visit(Unary unary);
+		public void Visit(Nothing nothing);
 	}
 	public class Binary (Expr left, Token oper, Expr right) : Expr
 	{
@@ -19,6 +27,10 @@ public abstract class Expr
 		{
 			return visitor.Visit(this);
 		}
+		public override void Accept(IVisitor visitor)
+		{
+			visitor.Visit(this);
+		}
 	}
 	public class Grouping (Expr expression) : Expr
 	{
@@ -28,6 +40,10 @@ public abstract class Expr
 		{
 			return visitor.Visit(this);
 		}
+		public override void Accept(IVisitor visitor)
+		{
+			visitor.Visit(this);
+		}
 	}
 	public class Literal (object value) : Expr
 	{
@@ -36,6 +52,10 @@ public abstract class Expr
 		public override T Accept<T>(IVisitor<T> visitor)
 		{
 			return visitor.Visit(this);
+		}
+		public override void Accept(IVisitor visitor)
+		{
+			visitor.Visit(this);
 		}
 	}
 	public class Unary (Token oper, Expr right) : Expr
@@ -47,6 +67,10 @@ public abstract class Expr
 		{
 			return visitor.Visit(this);
 		}
+		public override void Accept(IVisitor visitor)
+		{
+			visitor.Visit(this);
+		}
 	}
 	public class Nothing (string nothing) : Expr
 	{
@@ -56,6 +80,12 @@ public abstract class Expr
 		{
 			return visitor.Visit(this);
 		}
+		public override void Accept(IVisitor visitor)
+		{
+			visitor.Visit(this);
+		}
 	}
 	public abstract T Accept<T>(IVisitor<T> visitor);
+
+	public abstract void Accept(IVisitor visitor);
 }

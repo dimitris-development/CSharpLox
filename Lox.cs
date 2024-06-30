@@ -63,13 +63,13 @@ namespace CSharpLox
 
         static void Run(string source)
         {
-            Expr? expression = Parse(source);
+            List<Stmt> expression = Parse(source);
             if (hadError) return;
 
             _interpreter.Interpret(expression);
         }
 
-        public static Expr? Parse(string source, string errorFilePath = "")
+        public static List<Stmt> Parse(string source, string errorFilePath = "")
         {
             if (errorFilePath != "")
             {

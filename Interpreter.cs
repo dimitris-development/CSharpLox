@@ -1,16 +1,17 @@
 ﻿using AST;
-using static AST.Expr;
 
 namespace CSharpLox
 {
-    public class Interpreter : IVisitor<object>
+    public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor
     {
-        public void Interpret(Expr expression)
+        public void Interpret(List<Stmt> statements)
         {
             try
             {
-                object value = Evaluate(expression);
-                Console.WriteLine(Stringify(value));
+                foreach (Stmt stmt in statements)
+                {
+                    Execute(stmt);
+                }
             }
             catch (RuntimeError ex)
             {
@@ -24,7 +25,28 @@ namespace CSharpLox
             public readonly string message = message;
         }
 
-        public object Visit(Binary binary)
+        void Execute(Stmt stmt)
+        {
+            stmt.Accept(this);
+        }
+
+        public void Visit(Stmt.Expression statementExpression)
+        {
+            Evaluate(statementExpression.expression);
+        }
+
+        public void Visit(Stmt.Print statementPrint)
+        {
+            object output = Evaluate(statementPrint.expression);
+            Console.Write(Stringify(output));
+        }
+
+        object Evaluate(Expr expr)
+        {
+            return expr.Accept(this);
+        }
+
+        public object Visit(Expr.Binary binary)
         {
             object left = Evaluate(binary.left);
             object right = Evaluate(binary.right);
@@ -72,17 +94,17 @@ namespace CSharpLox
             throw new RuntimeError(binary.oper, "Unexpected binary operation");
         }
 
-        public object Visit(Grouping grouping)
+        public object Visit(Expr.Grouping grouping)
         {
             return Evaluate(grouping.expression);
         }
 
-        public object Visit(Literal literal)
+        public object Visit(Expr.Literal literal)
         {
             return literal.value;
         }
 
-        public object Visit(Unary unary)
+        public object Visit(Expr.Unary unary)
         {
             object right = Evaluate(unary);
 
@@ -98,23 +120,20 @@ namespace CSharpLox
             throw new RuntimeError(unary.oper, "Unexpected unary operation");
         }
 
-        public object Visit(Nothing nothing)
+        public object Visit(Expr.Nothing nothing)
         {
             return "Nothing";
         }
 
-        object Evaluate(Expr expr)
-        {
-            return expr.Accept(this);
-        }
 
-        object Terminal(Binary binaryExpr)
+
+        object Terminal(Expr.Binary binaryExpr)
         {
             object condition = Evaluate(binaryExpr.left);
 
-            if (binaryExpr.right is not Binary) throw new RuntimeError(binaryExpr.oper, "Unexpected expression to the right of '?'");
+            if (binaryExpr.right is not Expr.Binary) throw new RuntimeError(binaryExpr.oper, "Unexpected expression to the right of '?'");
 
-            Binary results = (Binary)binaryExpr.right;
+            Expr.Binary results = (Expr.Binary)binaryExpr.right;
 
             if ((bool)condition)
                 return Evaluate(results.left);

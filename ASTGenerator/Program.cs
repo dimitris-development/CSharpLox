@@ -9,9 +9,14 @@
             DefineAst(outputDir, "Expr", [
               "Binary   : Expr left, Token oper, Expr right",
               "Grouping : Expr expression",
-              "Literal  : object? value",
+              "Literal  : object value",
               "Unary    : Token oper, Expr right",
               "Nothing  : string nothing"
+            ]);
+
+            DefineAst(outputDir, "Stmt", [
+                "Expression : Expr expression",
+                "Print : Expr expression"
             ]);
         }
 
@@ -39,6 +44,8 @@
                 }
 
                 sw.WriteLine("\tpublic abstract T Accept<T>(IVisitor<T> visitor);");
+                sw.WriteLine();
+                sw.WriteLine("\tpublic abstract void Accept(IVisitor visitor);");
                 sw.WriteLine("}");
             }
         }
@@ -53,6 +60,18 @@
                 string className = type.Split(":")[0].Trim();
 
                 sw.WriteLine($"\t\tpublic T Visit({className} {className.ToLower()});");
+            }
+
+            sw.WriteLine("\t}");
+
+            sw.WriteLine($"\tpublic interface IVisitor");
+            sw.WriteLine("\t{");
+
+            foreach (string type in types)
+            {
+                string className = type.Split(":")[0].Trim();
+
+                sw.WriteLine($"\t\tpublic void Visit({className} {className.ToLower()});");
             }
 
             sw.WriteLine("\t}");
@@ -77,6 +96,10 @@
             sw.WriteLine("\t\tpublic override T Accept<T>(IVisitor<T> visitor)");
             sw.WriteLine("\t\t{");
             sw.WriteLine($"\t\t\treturn visitor.Visit(this);");
+            sw.WriteLine("\t\t}");
+            sw.WriteLine("\t\tpublic override void Accept(IVisitor visitor)");
+            sw.WriteLine("\t\t{");
+            sw.WriteLine($"\t\t\tvisitor.Visit(this);");
             sw.WriteLine("\t\t}");
             sw.WriteLine("\t}");
         }

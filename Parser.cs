@@ -4,6 +4,10 @@ namespace CSharpLox
 {
     // Parsing rules:
     // 
+    // program        → statement* EOF
+    // statement      → exprStmt | printStmt
+    // exprStmt       → expression ";"
+    // printStmt      → "print" expression ";"
     // expression     → conditional (, conditional)*
     // 
     // Conditional resolves to term so equality ? term : term == equality ? term : conditional
@@ -18,39 +22,55 @@ namespace CSharpLox
 
     public class Parser(IList<Token> tokens)
     {
-        private class UnhandledParseError : Exception;
+        class UnhandledParseError : Exception;
 
-        private class HandledParseError(Token token, string message)
+        class HandledParseError(Token token, string message)
         {
             public string message = message;
             public Token token = token;
         }
 
-        private IList<HandledParseError> _errors = new List<HandledParseError>();
+        IList<HandledParseError> _errors = new List<HandledParseError>();
 
-        private readonly IList<Token> _tokens = tokens;
-        private int _current = 0;
+        readonly IList<Token> _tokens = tokens;
+        int _current = 0;
 
-        public Expr? Parse()
+        public List<Stmt> Parse()
         {
-            try
-            {
-                Expr expr = Expression();
+            List<Stmt> result = new List<Stmt>();
 
-                foreach (var error in _errors)
-                {
-                    Lox.Error(error.token, error.message);
-                }
-
-                return expr;
-            }
-            catch (UnhandledParseError error)
+            while (!IsEOF())
             {
-                return null;
+                result.Add(Statement());
             }
+
+            return result;
         }
 
-        private Expr Expression()
+        Stmt Statement()
+        {
+            if (Match(TokenType.PRINT)) return PrintStatement();
+
+            return ExpressionStatement();
+        }
+
+        Stmt PrintStatement()
+        {
+            Expr value = Expression();
+            Consume(TokenType.SEMICOLON, "Expected semicolon at the end of a statement");
+
+            return new Stmt.Print(value);
+        }
+
+        Stmt ExpressionStatement()
+        {
+            Expr value = Expression();
+            Consume(TokenType.SEMICOLON, "Expected semicolon at the end of a statement");
+
+            return new Stmt.Expression(value);
+        }
+
+        Expr Expression()
         {
             Expr expr = Conditional();
 
@@ -69,7 +89,7 @@ namespace CSharpLox
             return expr;
         }
 
-        private Expr Conditional()
+        Expr Conditional()
         {
             Expr expr = Equality();
 
@@ -93,7 +113,7 @@ namespace CSharpLox
             return new Expr.Binary(expr, questionMark, conditionalSubtree);
         }
 
-        private Expr Equality()
+        Expr Equality()
         {
             Expr expr = Comparison();
 
@@ -112,7 +132,7 @@ namespace CSharpLox
             return expr;
         }
 
-        private Expr Comparison()
+        Expr Comparison()
         {
             Expr expr = Term();
 
@@ -131,7 +151,7 @@ namespace CSharpLox
             return expr;
         }
 
-        private Expr Term()
+        Expr Term()
         {
             Expr expr = Factor();
 
@@ -150,7 +170,7 @@ namespace CSharpLox
             return expr;
         }
 
-        private Expr Factor()
+        Expr Factor()
         {
             Expr expr = Unary();
 
@@ -169,7 +189,7 @@ namespace CSharpLox
             return expr;
         }
 
-        private Expr Unary()
+        Expr Unary()
         {
             while (Match(TokenType.BANG, TokenType.MINUS))
             {
@@ -182,7 +202,7 @@ namespace CSharpLox
             return Primary();
         }
 
-        private Expr Primary()
+        Expr Primary()
         {
             if (Match(TokenType.FALSE)) return new Expr.Literal(false);
             if (Match(TokenType.TRUE)) return new Expr.Literal(true);
@@ -206,7 +226,7 @@ namespace CSharpLox
             return new Expr.Nothing("Nothing");
         }
 
-        private Expr CheckForExpression(Expr expr, string errorMessage)
+        Expr CheckForExpression(Expr expr, string errorMessage)
         {
             if (expr is Expr.Nothing)
             {
@@ -217,7 +237,7 @@ namespace CSharpLox
             return expr;
         }
 
-        private bool Match(params TokenType[] tokens)
+        bool Match(params TokenType[] tokens)
         {
             foreach (var token in tokens)
             {
@@ -231,40 +251,40 @@ namespace CSharpLox
             return false;
         }
 
-        private bool Check(TokenType type)
+        bool Check(TokenType type)
         {
             if (IsEOF()) return false;
             return Peek().type == type;
         }
 
-        private bool IsEOF()
+        bool IsEOF()
         {
             return Peek().type == TokenType.EOF;
         }
 
-        private Token Peek()
+        Token Peek()
         {
             return _tokens[_current];
         }
 
-        private Token Previous()
+        Token Previous()
         {
             return _tokens[_current - 1];
         }
 
-        private Token Advance()
+        Token Advance()
         {
             if (!IsEOF()) _current++;
             return Previous();
         }
 
-        private Token Consume(TokenType type, string errorMessage)
+        Token Consume(TokenType type, string errorMessage)
         {
             if (Check(type)) return Advance();
             throw Error(Peek(), errorMessage);
         }
 
-        private static UnhandledParseError Error(Token token, string message)
+        static UnhandledParseError Error(Token token, string message)
         {
             Lox.Error(token, message);
             return new UnhandledParseError();
