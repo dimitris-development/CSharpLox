@@ -4,7 +4,9 @@ namespace CSharpLox
 {
     // Parsing rules:
     // 
-    // program        → statement* EOF
+    // program        → declaration* EOF
+    // declaration    → varDecl | statement
+    // varDecl        → "var" IDENTIFIER ("=" expression)? ";" 
     // statement      → exprStmt | printStmt
     // exprStmt       → expression ";"
     // printStmt      → "print" expression ";"
@@ -18,7 +20,7 @@ namespace CSharpLox
     // factor         → unary(( "/" | "*" ) unary )*
     // unary          → ( "!" | "-" ) unary
     //                  | primary
-    // primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")"
+    // primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER
 
     public class Parser(IList<Token> tokens)
     {
@@ -41,10 +43,51 @@ namespace CSharpLox
 
             while (!IsEOF())
             {
-                result.Add(Statement());
+                var decl = Declaration();
+
+                // Ignore empty declaration because they're caused by parsing errors.
+                if (decl == null) continue;
+
+                result.Add(decl);
+            }
+
+            foreach (var error in _errors)
+            {
+                Lox.Error(error.token, error.message);
             }
 
             return result;
+        }
+
+        Stmt? Declaration()
+        {
+            try
+            {
+                if (Match(TokenType.VAR)) return VarDeclaration();
+
+                return Statement();
+            }
+            catch (UnhandledParseError error)
+            {
+                Synchronize();
+                return null;
+            }
+        }
+
+        Stmt VarDeclaration()
+        {
+            Token token = Consume(TokenType.IDENTIFIER, "Expected variable name");
+
+            Expr? initiliazer = null;
+
+            if (Match(TokenType.EQUAL))
+            {
+                initiliazer = Expression();
+            }
+
+            Consume(TokenType.SEMICOLON, "Expected ';' after variable declaration");
+
+            return new Stmt.Var(token, initiliazer);
         }
 
         Stmt Statement()
@@ -213,6 +256,8 @@ namespace CSharpLox
                 return new Expr.Literal(Previous().literal);
             }
 
+            if (Match(TokenType.IDENTIFIER)) return new Expr.Variable(Previous());
+
             if (Match(TokenType.LEFT_PAREN))
             {
                 Expr expr = Expression();
@@ -282,6 +327,31 @@ namespace CSharpLox
         {
             if (Check(type)) return Advance();
             throw Error(Peek(), errorMessage);
+        }
+
+        void Synchronize()
+        {
+            Advance();
+
+            while(!IsEOF())
+            {
+                if (Previous().type == TokenType.SEMICOLON) return;
+
+                switch (Peek().type)
+                {
+                    case TokenType.CLASS:
+                    case TokenType.FUN:
+                    case TokenType.VAR:
+                    case TokenType.FOR:
+                    case TokenType.WHILE:
+                    case TokenType.IF:
+                    case TokenType.PRINT:
+                    case TokenType.RETURN:
+                        return;
+                }
+
+                Advance();
+            }
         }
 
         static UnhandledParseError Error(Token token, string message)

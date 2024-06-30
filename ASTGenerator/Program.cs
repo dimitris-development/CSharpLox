@@ -11,12 +11,14 @@
               "Grouping : Expr expression",
               "Literal  : object value",
               "Unary    : Token oper, Expr right",
-              "Nothing  : string nothing"
+              "Nothing  : string nothing",
+              "Variable : Token name"
             ]);
 
             DefineAst(outputDir, "Stmt", [
                 "Expression : Expr expression",
-                "Print : Expr expression"
+                "Print : Expr expression",
+                "Var   : Token name, Expr? initializer"
             ]);
         }
 

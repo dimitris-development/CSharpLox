@@ -4,6 +4,8 @@ namespace CSharpLox
 {
     public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor
     {
+        Environment _environment = new Environment();
+
         public void Interpret(List<Stmt> statements)
         {
             try
@@ -38,7 +40,19 @@ namespace CSharpLox
         public void Visit(Stmt.Print statementPrint)
         {
             object output = Evaluate(statementPrint.expression);
-            Console.Write(Stringify(output));
+            Console.WriteLine(Stringify(output));
+        }
+
+        public void Visit(Stmt.Var stmt)
+        {
+            object? value = null;
+
+            if (stmt.initializer != null)
+            {
+                value = Evaluate(stmt.initializer);
+            }
+
+            _environment.Define(stmt.name.lexeme, value);
         }
 
         object Evaluate(Expr expr)
@@ -46,8 +60,15 @@ namespace CSharpLox
             return expr.Accept(this);
         }
 
+        public object Visit(Expr.Variable variable)
+        {
+            return _environment.Get(variable.name) ?? "nil";
+        }
+
         public object Visit(Expr.Binary binary)
         {
+            if (binary.oper.type == TokenType.QUESTION_MARK) return Terminal(binary);
+
             object left = Evaluate(binary.left);
             object right = Evaluate(binary.right);
             
@@ -70,7 +91,15 @@ namespace CSharpLox
                         return (string)left + (string)right;
                     if (left is double && right is double)
                         return (double)left + (double)right;
-                    break;
+
+                    try
+                    {
+                        return $"{left}{right}";
+                    }
+                    catch
+                    {
+                        break;
+                    }
                 case TokenType.MINUS:
                     CheckNumberOperands(binary.oper, left, right);
                     return (double)left - (double)right;
@@ -83,8 +112,6 @@ namespace CSharpLox
                     if ((double) right == 0) throw new RuntimeError(binary.oper, "Division by 0");
 
                     return (double)left / (double)right;
-                case TokenType.QUESTION_MARK:
-                    return Terminal(binary);
                 case TokenType.BANG_EQUAL:
                     return !IsEqual(binary.left, binary.right);
                 case TokenType.EQUAL_EQUAL:
@@ -124,8 +151,6 @@ namespace CSharpLox
         {
             return "Nothing";
         }
-
-
 
         object Terminal(Expr.Binary binaryExpr)
         {

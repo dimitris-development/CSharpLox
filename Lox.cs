@@ -44,8 +44,8 @@ namespace CSharpLox
             string stream = File.ReadAllText(filePath);
 
             Run(stream);
-            if (hadError) Environment.Exit(65);
-            if (hadRuntimeError) Environment.Exit(70);
+            if (hadError) System.Environment.Exit(65);
+            if (hadRuntimeError) System.Environment.Exit(70);
         }
 
         static void RunPrompt()

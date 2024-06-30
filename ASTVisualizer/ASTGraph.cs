@@ -43,6 +43,18 @@ public class ASTGraph (Graph graph) : Expr.IVisitor<string>, Stmt.IVisitor<strin
         return CreateNode("Nothing");
     }
 
+    public string Visit(Expr.Variable variable)
+    {
+        return CreateNode($"Variable {variable.name.lexeme}");
+    }
+
+    public string Visit(Stmt.Var var)
+    {
+        if (var.initializer == null) return CreateNode($"Var Declaration {var.name}");
+
+        return CreateNode($"Variable Declaration '{var.name}'", var.initializer);
+    }
+
     public string Visualize(Stmt stmt)
     {
         return stmt.Accept(this);

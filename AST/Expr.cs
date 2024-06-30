@@ -8,6 +8,7 @@ public abstract class Expr
 		public T Visit(Literal literal);
 		public T Visit(Unary unary);
 		public T Visit(Nothing nothing);
+		public T Visit(Variable variable);
 	}
 	public interface IVisitor
 	{
@@ -16,6 +17,7 @@ public abstract class Expr
 		public void Visit(Literal literal);
 		public void Visit(Unary unary);
 		public void Visit(Nothing nothing);
+		public void Visit(Variable variable);
 	}
 	public class Binary (Expr left, Token oper, Expr right) : Expr
 	{
@@ -75,6 +77,19 @@ public abstract class Expr
 	public class Nothing (string nothing) : Expr
 	{
 		public readonly string nothing = nothing;
+
+		public override T Accept<T>(IVisitor<T> visitor)
+		{
+			return visitor.Visit(this);
+		}
+		public override void Accept(IVisitor visitor)
+		{
+			visitor.Visit(this);
+		}
+	}
+	public class Variable (Token name) : Expr
+	{
+		public readonly Token name = name;
 
 		public override T Accept<T>(IVisitor<T> visitor)
 		{
